@@ -21,27 +21,26 @@ int funcSTD = 0;                    //Estados para de la funcion de seleccion de
 int BP1 = 50, BP2 = 100, BP3 = 200; //Blink intermidiate time
 int interB = 100;                  //Blink intermidiate time general
 
-//int led = 9; // el pin PWM al que esta conectado el LED tiene brillo 
-int brillo = 0; // el brillo del LED 
-int fadeAmount = 5; // cuantos puntos atenuar el LED 
+/********************* Variables para desvanecido***********************************/
+int brightness= 0; 
+int fade = 5; 
 
 unsigned long tiempo;
-unsigned long tiempoA=0;
-unsigned long retardo=100;
+unsigned long time=0;
+unsigned long retardado=100;
 
 void setup()
 {
   pinMode(btnIN, INPUT_PULLUP);
   pinMode(LED, OUTPUT);
-    // declara el pin 9 como talrtie: 
-  //pinMode (led, OUTPUT); 
+   
 }
 
 void loop()
 {
   func1(); //Button detection
   func2(); //Menu de seleccion
-  apagar();
+  desvanecido();
 }
 /////////////////////////////////////////////
 void func1()
@@ -126,16 +125,18 @@ void funcB4(int interB) {
 
 }
 
-void apagar(){
+void desvanecido(){
     tiempo = millis ();
-  if(tiempo>tiempoA+retardo){
-  tiempoA=tiempo;
-
-  analogWrite (LED, brillo);
+  if(tiempo>time+retardado){
+  time=tiempo;
+  // establece el brillo del pin 9: 
+  analogWrite (LED, brightness);
  // cambia el brillo para la proxima vez a traves del ciclo: 
- brillo = brillo + fadeAmount; 
+ brightness = brightness + fade; 
  // invierte la direccion del fundido en los extremos del fundido: 
- if (brillo == 0 || brillo == 255) {fadeAmount = -fadeAmount; } 
-
+ if (brightness == 0 || brightness == 255) {
+   fade = -fade;
+    } 
+ 
  }
     }
