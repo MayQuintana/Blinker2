@@ -130,12 +130,12 @@ void apagar(){
     tiempo = millis ();
   if(tiempo>tiempoA+retardo){
   tiempoA=tiempo;
-  // establece el brillo del pin 9: 
+
   analogWrite (LED, brillo);
  // cambia el brillo para la proxima vez a traves del ciclo: 
  brillo = brillo + fadeAmount; 
  // invierte la direccion del fundido en los extremos del fundido: 
  if (brillo == 0 || brillo == 255) {fadeAmount = -fadeAmount; } 
- // esperar 30 milisegundos para ver el retardo del efecto de atenuacion 
+
  }
     }
