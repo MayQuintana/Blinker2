@@ -9,6 +9,7 @@ enum funMode
   BLINK2,
   BLINK3,
   BLINK4,
+  DESV,
   NBSTATE
 };
 
@@ -38,8 +39,8 @@ void setup()
 
 void loop()
 {
-  func1(); //Button detection
   func2(); //Menu de seleccion
+  func1(); //Button detection
   desvanecido();
 }
 /////////////////////////////////////////////
@@ -89,6 +90,11 @@ void func2()
   case BLINK4:
     funcB4(interB);
     break;
+
+    case DESV:
+    desvanecido();
+    break;
+
   }
 }
 void funcB1(int BP1)
