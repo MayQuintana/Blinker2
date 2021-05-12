@@ -1,148 +1,89 @@
-#include <Arduino.h>
-#define btnIN A0 //Entrada analogica
-#define LED 10   //Salida digital
+#include <LiquidCrystal.h>
+const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-enum funMode
-{
-  OFF,
-  BLINK1,
-  BLINK2,
-  BLINK3,
-  BLINK4,
-  DESV,
-  NBSTATE
-};
+#define pulsador1 7
+boolean estadoActual1 = LOW;          
+boolean estadoAnterior1 = LOW;
 
-int L_STD = LOW;
-unsigned long pre_Millis, pas_Millis;
-unsigned long lastDeTime = 0;       //Ultimo tiempo definido como 0 o inicio (rebote)
-int LstBSTD = HIGH;                 //Ultimo estado pre-definido es Alto
-int btnSTD = 0;                     //Estado presente
-int funcSTD = 0;                    //Estados para de la funcion de seleccion de Menu
-int BP1 = 50, BP2 = 100, BP3 = 200; //Blink intermidiate time
-int interB = 100;                  //Blink intermidiate time general
+#define pulsador2 6
+boolean estadoActual2 = LOW;          
+boolean estadoAnterior2 = LOW;
 
-/********************* Variables para desvanecido***********************************/
-int brightness= 0; 
-int fade = 5; 
+boolean estadoActual = LOW;          
+boolean estadoAnterior = LOW;
 
-unsigned long tiempo;
-unsigned long time=0;
-unsigned long retardado=100;
+int contador = 0;
 
-void setup()
-{
-  pinMode(btnIN, INPUT_PULLUP);
-  pinMode(LED, OUTPUT);
-   
+
+void setup() {
+  pinMode(pulsador1, INPUT);
+  pinMode(pulsador2, INPUT);
+  Serial.begin(9600);
+  lcd.begin(16, 2);
+  lcd.setCursor(0, 0);
+  lcd.display();
+  lcd.print("Maite Quintana");
+  delay(2000);
+  menu();
 }
 
-void loop()
-{
-  func2(); //Menu de seleccion
-  func1(); //Button detection
-  desvanecido();
-}
-/////////////////////////////////////////////
-void func1()
-{
-  int reading = digitalRead(btnIN);
-  if (reading != LstBSTD)
-  {                        //Ultima estado definido del buton
-    lastDeTime = millis(); //lastDeubonceTime
-    if ((millis() - lastDeTime) > 100)
-    {
-      if (reading != btnSTD)
-      {
-        btnSTD = reading;
-      }
-      if (btnSTD == HIGH)
-      {
-        funcSTD += 1;
-      }
-    }
+boolean rebote(boolean estadoAnterior, int pin){
+  boolean estadoActual = digitalRead(pin);
+  if (estadoAnterior != estadoActual){
+      delay(5);
+      estadoActual = digitalRead(pin);
   }
-  LstBSTD = reading;
-  funcSTD = funcSTD % NBSTATE;
+  return estadoActual;
 }
-/////////////////////////////////////
-void func2()
-{
-  switch (funcSTD)
-  {
-  case OFF:
-    //FuncionOFF - LED
-    digitalWrite(LED, LOW);
-    break;
-  case BLINK1:
-    //FuncionBlink1 - LED
-    funcB1(BP1);
-    break;
-  case BLINK2:
-    //FuncionBlink2 - LED
-    funcB2(BP2);
-    break;
-  case BLINK3:
-  //FuncionBlink3 - LED
-    funcB3(BP3);
-    break;
-  //FuncionBlink4 - LED
-  case BLINK4:
-    funcB4(interB);
-    break;
 
-    case DESV:
-    desvanecido();
-    break;
-
-  }
-}
-void funcB1(int BP1)
-{
-  delay(BP1);
-  digitalWrite(LED, LOW);
-  delay(BP1);
-  digitalWrite(LED, HIGH);
-}
-void funcB2(int BP2)
-{
-  delay(BP2);
-  digitalWrite(LED, LOW);
-  delay(BP2);
-  digitalWrite(LED, HIGH);
-}
-void funcB3(int BP3)
-{
-  delay(BP3);
-  digitalWrite(LED, LOW);
-  delay(BP3);
-  digitalWrite(LED, HIGH);
-}
-void funcB4(int interB) {
-  pre_Millis = millis();
-  if ((pre_Millis - pas_Millis) >= interB) {
-    pas_Millis = pre_Millis;
-    if(L_STD = LOW) {
-      L_STD = HIGH;
-    } else {
-      L_STD = LOW;
+void loop() {
+  estadoActual1 = rebote(estadoAnterior1, pulsador1); 
+  if (estadoAnterior1 == LOW && estadoActual1 == HIGH){
+    contador++;
+    if(contador>=2){
+      contador = 2;
     }
+    Serial.println(contador);
+    menu();
   }
-
+  estadoAnterior1 = estadoActual1;
+  
+  estadoActual2 = rebote(estadoAnterior2, pulsador2); 
+  if (estadoAnterior2 == LOW && estadoActual2 == HIGH){
+    contador--;
+    if(contador <= 0){
+      contador = 0;
+    }
+    Serial.println(contador);
+    menu();
+  }
+  estadoAnterior2 = estadoActual2;
 }
 
-void desvanecido(){
-    tiempo = millis ();
-  if(tiempo>time+retardado){
-  time=tiempo;
-  // establece el brillo del pin 9: 
-  analogWrite (LED, brightness);
- // cambia el brillo para la proxima vez a traves del ciclo: 
- brightness = brightness + fade; 
- // invierte la direccion del fundido en los extremos del fundido: 
- if (brightness == 0 || brightness == 255) {
-   fade = -fade;
-    } 
- 
- }
+void menu(){
+  switch (contador){
+    case 0:{
+      lcd.clear();
+      lcd.setCursor(0, 0);
+        lcd.print("Opcion 1");
+        lcd.setCursor(0, 1);
+        lcd.print("Opcion 2");
+      break;
     }
+    case 1:
+      lcd.clear();
+      lcd.setCursor(0, 0);
+        lcd.print("Opcion 3");
+        lcd.setCursor(0, 1);
+        lcd.print("Opcion 4");
+      break;
+    case 2:
+      lcd.clear();
+      lcd.setCursor(0, 0);
+        lcd.print("Opcion 5");
+        lcd.setCursor(0, 1);
+        lcd.print("Opcion 6");
+      break;
+  }}
+  
