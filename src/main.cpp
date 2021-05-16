@@ -1,89 +1,203 @@
 #include <LiquidCrystal.h>
+
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
-#define pulsador1 7
-boolean estadoActual1 = LOW;          
-boolean estadoAnterior1 = LOW;
+int upButton = 10;
+int downButton = 9;
+int selectButton = 8;
 
-#define pulsador2 6
-boolean estadoActual2 = LOW;          
-boolean estadoAnterior2 = LOW;
+int menu = 1;
 
-boolean estadoActual = LOW;          
-boolean estadoAnterior = LOW;
-
-int contador = 0;
+int LED = 6;
 
 
 void setup() {
-  pinMode(pulsador1, INPUT);
-  pinMode(pulsador2, INPUT);
-  Serial.begin(9600);
   lcd.begin(16, 2);
-  lcd.setCursor(0, 0);
-  lcd.display();
-  lcd.print("Maite Quintana");
-  delay(2000);
-  menu();
+
+  pinMode(upButton, INPUT_PULLUP);
+  pinMode(downButton, INPUT_PULLUP);
+  pinMode(selectButton, INPUT_PULLUP);
+  
+  pinMode(LED, OUTPUT);
+
+  updateMenu();
 }
 
-boolean rebote(boolean estadoAnterior, int pin){
-  boolean estadoActual = digitalRead(pin);
-  if (estadoAnterior != estadoActual){
-      delay(5);
-      estadoActual = digitalRead(pin);
-  }
-  return estadoActual;
-}
 
 void loop() {
-  estadoActual1 = rebote(estadoAnterior1, pulsador1); 
-  if (estadoAnterior1 == LOW && estadoActual1 == HIGH){
-    contador++;
-    if(contador>=2){
-      contador = 2;
-    }
-    Serial.println(contador);
-    menu();
+  if (!digitalRead(downButton)) {
+    menu++;
+    updateMenu();
+    delay(100);
   }
-  estadoAnterior1 = estadoActual1;
-  
-  estadoActual2 = rebote(estadoAnterior2, pulsador2); 
-  if (estadoAnterior2 == LOW && estadoActual2 == HIGH){
-    contador--;
-    if(contador <= 0){
-      contador = 0;
-    }
-    Serial.println(contador);
-    menu();
+
+  if (!digitalRead(upButton)) {
+    menu--;
+    updateMenu();
+    delay(100);
+    
   }
-  estadoAnterior2 = estadoActual2;
+
+  if (!digitalRead(selectButton)) {
+    execute();
+    updateMenu();
+    delay(100);
+    
+  }	
 }
 
-void menu(){
-  switch (contador){
-    case 0:{
-      lcd.clear();
-      lcd.setCursor(0, 0);
-        lcd.print("Opcion 1");
-        lcd.setCursor(0, 1);
-        lcd.print("Opcion 2");
+
+// ############# Opciones de menu #############
+
+void updateMenu() {
+  switch (menu) {
+    case 0:
+      menu = 1;
       break;
-    }
     case 1:
       lcd.clear();
-      lcd.setCursor(0, 0);
-        lcd.print("Opcion 3");
-        lcd.setCursor(0, 1);
-        lcd.print("Opcion 4");
+      lcd.print(">Encender LED");
+      lcd.setCursor(0, 1);
+      lcd.print(" Apagar LED");
       break;
     case 2:
       lcd.clear();
-      lcd.setCursor(0, 0);
-        lcd.print("Opcion 5");
-        lcd.setCursor(0, 1);
-        lcd.print("Opcion 6");
+      lcd.print(" Encender LED");
+      lcd.setCursor(0, 1);
+      lcd.print(">Apagar LED");
       break;
-  }}
+      case 3:
+      lcd.clear();
+      lcd.print(">Desvanecido");
+      lcd.setCursor(0, 1);
+      lcd.print(" Intermitente");
+      break;
+    case 4:
+      lcd.clear();
+      lcd.print(" Desvanecido");
+      lcd.setCursor(0, 1);
+      lcd.print(">Intermitente");
+      break;
+    case 5:
+      menu = 4;
+      break;
+   
+   }
+}
+
+// ############ Ejecucion del menu #############
+void execute() {
+  switch (menu) {
+   case 1:
+      action1();
+      break;
+    case 2:
+      action2();
+      break;
+    case 3:
+      action3();
+      break;
+     case 4:
+      action4();
+      break;
+    
+  }
+}
+
+
+// ############## Acciones del menu  #############
+
+void action1() {
+  lcd.clear();
+  lcd.print(">Encendiendo");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
   
+  digitalWrite(LED, HIGH);
+  
+  delay(500);
+}
+
+void action2() {
+  lcd.clear();
+  lcd.print(">Apagando");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  
+  digitalWrite(LED, LOW);
+  
+  delay(500);
+}
+void action3() {
+  lcd.clear();
+  lcd.print(">Desavecido");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  funcDesva(2);
+  delay(1500);
+  
+}
+
+  void action4() {
+  lcd.clear();
+  lcd.print(">Intermitente");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  delay(150);
+  lcd.print(".");
+  intermitente();
+  delay(1500);
+  }
+void funcDesva(int temp){//la funcion recibe un entero el cual varia la velocidad de desvanecido
+  int periodo = temp;//periodo toma el valor que de temp
+  //Se declaran dos tiempos los cuales se usarn para la espera o el delay
+  unsigned long tiempo1 = 0;
+  unsigned long tiempo2 = 0;
+  int brillo;
+  for(brillo = 0; brillo <= 255; brillo++){//por medio de un for se va aumentando el brillo del led
+    analogWrite(LED,brillo);
+    tiempo1 = millis();//se le asigna al tiempo 1 el valor de millis
+    //el while nos ayuda a sustituir el delay
+    while (millis() < tiempo1 + periodo){
+      //Espera 
+    }
+  }
+  for(brillo = 255; brillo >= 0; brillo-- ){//este for ahora nos sirve para disminuirel brillo del led
+    analogWrite(LED,brillo);
+    tiempo2 = millis();
+    while (millis() < tiempo2 + periodo){
+     
+    }
+
+  }
+
+  
+}
+
+void intermitente(){
+  digitalWrite(LED,HIGH);
+  delay(300);
+  digitalWrite(LED,LOW);
+  delay(300);
+  digitalWrite(LED,HIGH);
+  delay(300);
+  digitalWrite(LED,LOW);
+  delay(300);
+}
+
+
